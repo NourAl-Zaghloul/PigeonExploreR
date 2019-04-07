@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1554603930023.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2479585049",
+    "id" : "FF443A12",
+    "lastKnownWriteTime" : 1552343892,
+    "last_content_update" : 1552343892,
+    "path" : "~/Git/pigeontools/R/pigeon_explorer.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "207,0",
+        "scrollLine" : "202"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
