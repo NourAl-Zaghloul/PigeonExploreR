@@ -1,12 +1,3 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
 library(shiny)
 
 # Define UI for application that draws a histogram
@@ -28,20 +19,26 @@ ui <- fluidPage(
                           checkboxInput(inputId = "head",
                                         label = "Head",
                                         value = FALSE),
+                          sliderInput("input_quantity",
+                                      "How many variables?",
+                                      1,3,2),
                           uiOutput("xchoice"),
-                          uiOutput("ychoice")),
+                          conditionalPanel("input.input_quantity > 1",
+                                           uiOutput("ychoice"))),
                         mainPanel(tableOutput("table")))),
              tabPanel("Layer",
                       sidebarLayout(
                         sidebarPanel(
-                          #### EXAMPLE INPUT
-                          sliderInput("bins",
-                                      "Number of bins:",
-                                      min = 1,
-                                      max = 50,
-                                      value = 30)),
+                          uiOutput("layerPlot_1"),
+                          uiOutput("layerx_1"),
+                          conditionalPanel("input.inputquantity > 1",
+                                           uiOutput("layery_1"))
+                        ),
                         mainPanel(
-                          plotOutput("distPlot"))))
+                          plotOutput("density")))),
+             tabPanel("Themes"),
+             tabPanel("R code"),
+             tabPanel("Extras")
              )
 )
 
@@ -60,7 +57,6 @@ server <- function(input, output) {
   # Setting up variables
   output$xchoice <- renderUI({
     req(input$file)
-
     selectInput(inputId = "xchoice",
                 label = "Choose x variable",
                 choices = Data_names())
@@ -68,10 +64,31 @@ server <- function(input, output) {
 
   output$ychoice <- renderUI({
     req(input$file)
-
     selectInput(inputId = "ychoice",
                 label = "Choose y variable",
                 choices = Data_names())
+  })
+  
+  # Makes layer1_ui
+  output$layerPlot_1 <- renderUI({
+    req(input$file)
+    selectInput(inputId = "layerPlot_1",
+                label = "Select your plot",
+                choices = c("Area","Density","Histogram","Dotplot","FreqPoly","qq","histogram_discrete"))    
+  })
+  output$layerx_1 <- renderUI({
+    req(input$file)
+    selectInput(inputId = "layerx_1",
+                label = "Choose x variable",
+                choices = Data_names(),
+                selected = input$xchoice)
+  })
+  output$layery_1 <- renderUI({
+    req(input$file)
+    selectInput(inputId = "layery_1",
+                label = "Choose y variable",
+                choices = Data_names(),
+                selected = input$ychoice)
   })
   
   # Main Table Outputs
@@ -84,14 +101,13 @@ server <- function(input, output) {
     }})
   
   
- #### EXAMPLE STRUCTURE  
-   output$distPlot <- renderPlot({
-      # generate bins based on input$bins from ui.R
-      x    <- faithful[, 2] 
-      bins <- seq(min(x), max(x), length.out = input$bins + 1)
+  
+  # Practice Plot
+  output$density <- renderPlot({
+    req(input$layerx_1)
+      plot_base <- ggplot2::ggplot(Data_df(), ggplot2::aes_string(x = {input$layerx_1}))
+      return(plot_base + ggplot2::geom_density())
       
-      # draw the histogram with the specified number of bins
-      hist(x, breaks = bins, col = 'darkgray', border = 'white')
    })
 }
 
