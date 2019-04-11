@@ -100,13 +100,21 @@ server <- function(input, output) {
       return(Data_df())
     }})
   
-  
-  
   # Practice Plot
   output$density <- renderPlot({
     req(input$layerx_1)
       plot_base <- ggplot2::ggplot(Data_df(), ggplot2::aes_string(x = {input$layerx_1}))
-      return(plot_base + ggplot2::geom_density())
+      layer1_input <- reactive({
+        switch(input$layerPlot_1,
+               "Area" = ggplot2::geom_area(stat = "bin"),
+               "Density" = ggplot2::geom_density(),
+               "Histogram" = ggplot2::geom_histogram(),
+               "Dotplot" = ggplot2::geom_dotplot(),
+               "FreqPoly" = ggplot2::geom_freqpoly(),
+               "qq" =  ggplot2::geom_qq(),
+               "histogram_discrete" = ggplot2::geom_bar())
+      })
+      return(plot_base + layer1_input())
       
    })
 }
