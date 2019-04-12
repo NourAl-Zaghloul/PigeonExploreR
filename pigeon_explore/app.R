@@ -1,9 +1,9 @@
 library(shiny)
 library(tidyverse)
+library(quantreg)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-  
   navbarPage("ggPigeon",
              tabPanel("Start",
                       sidebarLayout(
@@ -25,7 +25,9 @@ ui <- fluidPage(
                                       1,3,2),
                           uiOutput("xchoice"),
                           conditionalPanel("input.input_quantity > 1",
-                                           uiOutput("ychoice"))),
+                                           uiOutput("ychoice"),
+                                           conditionalPanel("input.input_quantity == 3",
+                                                            uiOutput("zchoice")))),
                         mainPanel(tableOutput("table")))),
              tabPanel("Layer",
                       sidebarLayout(
@@ -33,7 +35,13 @@ ui <- fluidPage(
                           uiOutput("layerPlot_1"),
                           uiOutput("layerx_1"),
                           conditionalPanel("input.input_quantity > 1",
-                                           uiOutput("layery_1"))
+                                           uiOutput("layery_1"),
+                                           conditionalPanel("input.input_quantity == 3",
+                                                            uiOutput("layerz_1")))
+                          #,
+                          ##### TODO: Fix conditional, doesn't work...
+                          # conditionalPanel("input.LayerPlot_1 %in% output.inputPlots_A",
+                          #                  uiOutput("layerChoiceA_1"))
                         ),
                         mainPanel(
                           plotOutput("ThePlot")))),
@@ -57,6 +65,12 @@ server <- function(input, output) {
   inputNames_0d <- c("Blank", "Curve", "Path", "Polygon", "Rectangle", "Ribbon", #primitives
                      "abline", "hline", "vline", "segment", "spoke") #line segments
   
+  #TODO: plotChoiceA-C primitives
+  inputPlots_A <-c("qq", #1d
+                   "Label","Text","Dotplot_2d","Map","Crossbar","Errorbar","Linerange","Pointrange") #2d
+  inputPlots_B <- c("Crossbar","Errorbar","Linerange","Pointrange") #2d
+  #TODO: plot aes
+  
   
   # Getting Data from the csv file uploaded
   Data_df <- reactive({
@@ -75,13 +89,19 @@ server <- function(input, output) {
                 label = "Choose x variable",
                 choices = Data_names())
   })
-
   output$ychoice <- renderUI({
     req(input$file)
     selectInput(inputId = "ychoice",
                 label = "Choose y variable",
                 choices = Data_names())
   })
+  output$zchoice <- renderUI({
+    req(input$file)
+    selectInput(inputId = "zchoice",
+                label = "Choose z variable",
+                choices = Data_names())
+  })
+  
   
   # Makes layer1_ui
   output$layerPlot_1 <- renderUI({
@@ -106,6 +126,19 @@ server <- function(input, output) {
                 choices = Data_names(),
                 selected = input$ychoice)
   })
+  output$layerz_1 <- renderUI({
+    req(input$file)
+    selectInput(inputId = "layerz_1",
+                label = "Choose z variable",
+                choices = Data_names(),
+                selected = input$zchoice)
+  })
+  ####TODO: Reactive choice UI ####
+  # output$layerChoiceA_1 <- renderUI({
+  #   selectInput(inputId = "layerChoiceA_1",
+  #               label = "sucks",
+  #               choices = c(1:10))
+  # })
   
   # Main Table Outputs
   output$table <- renderTable({
@@ -129,7 +162,7 @@ server <- function(input, output) {
     }else if(input$input_quantity == 3){
       plot_base <- ggplot2::ggplot(Data_df(), ggplot2::aes_string(x = {input$layerx_1},
                                                                   y = {input$layery_1},
-                                                                  z = {input$layery_1}))
+                                                                  z = {input$layerz_1}))
     }
       
       layer1_input <- reactive({
@@ -166,8 +199,8 @@ server <- function(input, output) {
                "Linerange" = ggplot2::geom_linerange(), 
                "Pointrange" = ggplot2::geom_pointrange(),
                "Contour" = ggplot2::geom_contour(), #XYZ
-               "Raster" = ggplot2::geom_raster(), 
-               "Tile" = ggplot2::geom_tile())
+               "Raster" = ggplot2::geom_raster(aes_string(fill = {input$layerz_1})), 
+               "Tile" = ggplot2::geom_tile(aes_string(fill = {input$layerz_1})))
       })
       return(plot_base + layer1_input())
       
