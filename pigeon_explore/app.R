@@ -36,7 +36,7 @@ ui <- fluidPage(
                                            uiOutput("layery_1"))
                         ),
                         mainPanel(
-                          plotOutput("density")))),
+                          plotOutput("ThePlot")))),
              tabPanel("Themes"),
              tabPanel("R code"),
              tabPanel("Extras")
@@ -116,14 +116,22 @@ server <- function(input, output) {
       return(Data_df())
     }})
   
-  # Practice Plot
-  output$density <- renderPlot({
+  #  Plot
+  output$ThePlot <- renderPlot({
+    
     req(input$layerx_1)
+    
+    if(input$input_quantity == 1){
+      plot_base <- ggplot2::ggplot(Data_df(), ggplot2::aes_string(x = {input$layerx_1}))
+    }else if(input$input_quantity == 2){
       plot_base <- ggplot2::ggplot(Data_df(), ggplot2::aes_string(x = {input$layerx_1},
-                                                                  y = {ifelse(input$input_quantity > 1,
-                                                                             {input$layery_1}, NULL)}
-                                                                  z = {ifelse(input$input_quantity > 2,
-                                                                              {input$layerz_1}, NULL)}))
+                                                                  y = {input$layery_1}))
+    }else if(input$input_quantity == 3){
+      plot_base <- ggplot2::ggplot(Data_df(), ggplot2::aes_string(x = {input$layerx_1},
+                                                                  y = {input$layery_1},
+                                                                  z = {input$layery_1}))
+    }
+      
       layer1_input <- reactive({
         input$layerPlot_1 %>% 
         switch(
