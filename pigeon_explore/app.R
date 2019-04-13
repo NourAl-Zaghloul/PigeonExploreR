@@ -4,71 +4,82 @@ library(quantreg)
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
-  navbarPage("ggPigeon",
-             tabPanel("Start",
-                      sidebarLayout(
-                        sidebarPanel(                      
-                          fileInput(inputId = "file",
-                                    label = "Choose CSV File",
-                                    accept = c(
-                                      "text/csv",
-                                       "text/comma-separated-values,text/plain",
-                                       ".csv")),
-                          checkboxInput(inputId = "header",
-                                        label = "Header",
-                                        value = TRUE),
-                          checkboxInput(inputId = "head",
-                                        label = "Head",
-                                        value = FALSE),
-                          sliderInput("input_quantity",
-                                      "How many variables?",
-                                      1,3,2),
-                          uiOutput("xchoice"),
-                          conditionalPanel("input.input_quantity > 1",
-                                           uiOutput("ychoice"),
-                                           conditionalPanel("input.input_quantity == 3",
-                                                            uiOutput("zchoice")))),
-                        mainPanel(tableOutput("table")))),
-             tabPanel("Layer",
-                      sidebarLayout(
-                        sidebarPanel(
-                          uiOutput("layerPlot_1"),
-                          uiOutput("layerx_1"),
-                          conditionalPanel("input.input_quantity > 1",
-                                           uiOutput("layery_1"),
-                                           conditionalPanel("input.input_quantity == 3",
-                                                            uiOutput("layerz_1")))
-                          #,
-                          ##### TODO: Fix conditional, doesn't work...
-                          # conditionalPanel("input.LayerPlot_1 %in% output.inputPlots_A",
-                          #                  uiOutput("layerChoiceA_1"))
+  navbarPage("Pigeon ExploreR",
+             navbarMenu("Data",
+                        tabPanel("Rawdata",
+                                 sidebarLayout(
+                                   sidebarPanel(                      
+                                     fileInput(inputId = "file",
+                                               label = "Choose CSV File",
+                                               accept = c(
+                                                 "text/csv",
+                                                 "text/comma-separated-values,text/plain",
+                                                 ".csv")),
+                                     checkboxInput(inputId = "header",
+                                                   label = "Header",
+                                                   value = TRUE),
+                                     checkboxInput(inputId = "head",
+                                                   label = "Head",
+                                                   value = FALSE),
+                                     sliderInput("input_quantity",
+                                                 "How many variables?",
+                                                 1,3,2),
+                                     uiOutput("xchoice"),
+                                     conditionalPanel("input.input_quantity > 1",
+                                                      uiOutput("ychoice"),
+                                                      conditionalPanel("input.input_quantity == 3",
+                                                                       uiOutput("zchoice")))),
+                                   mainPanel(tableOutput("table")))),
+                        tabPanel("Summaries"),
+                        tabPanel("Transform")
+                        )
+             ,
+             navbarMenu("Plot",
+                        tabPanel("Layer",
+                                 sidebarLayout(
+                                   sidebarPanel(
+                                     uiOutput("layerPlot_1"),
+                                     uiOutput("layerx_1"),
+                                     conditionalPanel("input.input_quantity > 1",
+                                                      uiOutput("layery_1"),
+                                                      conditionalPanel("input.input_quantity == 3",
+                                                                       uiOutput("layerz_1")))
+                                     #,
+                                     ##### TODO: Fix conditional, doesn't work...
+                                     # conditionalPanel("input.LayerPlot_1 %in% output.inputPlots_A",
+                                     #                  uiOutput("layerChoiceA_1"))
+                                   ),
+                                   mainPanel(
+                                     plotOutput("ThePlot")))),
+                        tabPanel("Themes")
                         ),
-                        mainPanel(
-                          plotOutput("ThePlot")))),
-             tabPanel("Themes"),
              tabPanel("R code"),
-             tabPanel("Extras")
+             tabPanel("About")
              )
 )
 
 server <- function(input, output) {
   # Setting up reused input options
   inputNames_1d <- c("Area","Density","Histogram","Dotplot","FreqPoly","qq","histogram_discrete")
-  inputNames_2d <- c("Label", "Point", "Jitter", "Quantile", "Rug", "Smooth", "Text", #Continuous XY
-                     "Columns", "Boxplot", "Dotplot_2d", "Violin", #Discrete X, Continuous Y
-                     "Count", # Discrete XY
-                     "Bin 2d", "Density 2d", "Hex", #Continuous Bivariate Dist.
-                     "Area_2d", "Line", "Step", #Continuous Function
-                     "Map", #Maps
-                     "Crossbar", "Errorbar", "Linerange", "Pointrange") #Error
+  inputNames_2d <- list(
+    "Continuous XY" = c("Point", "Jitter", "Quantile", "Rug", "Smooth", "Label", "Text"),
+    "Discrete X, Continuous Y" = c("Columns", "Boxplot", "Dotplot_2d", "Violin"),
+    "Discrete XY" = c("Count", ""),
+    "Continuous Bivariate Dist." = c("Bin 2d", "Density 2d", "Hex"),
+    "Continuous Function"= c("Area_2d", "Line", "Step"),
+    "Maps" = c("Map", ""),
+    "Error" = c("Crossbar", "Errorbar", "Linerange", "Pointrange")
+  )
   inputNames_3d <- c("Contour", "Raster", "Tile")
-  inputNames_0d <- c("Blank", "Curve", "Path", "Polygon", "Rectangle", "Ribbon", #primitives
-                     "abline", "hline", "vline", "segment", "spoke") #line segments
+  inputNames_0d <- list(
+    "Primitives" = c("Blank", "Curve", "Path", "Polygon", "Rectangle", "Ribbon"),
+    "Line Segments" = c("abline", "hline", "vline", "segment", "spoke")
+  )
   
   #TODO: plotChoiceA-C primitives
-  inputPlots_A <-c("qq", #1d
-                   "Label","Text","Dotplot_2d","Map","Crossbar","Errorbar","Linerange","Pointrange") #2d
-  inputPlots_B <- c("Crossbar","Errorbar","Linerange","Pointrange") #2d
+  # inputPlots_A <-c("qq", #1d
+  #                  "Label","Text","Dotplot_2d","Map","Crossbar","Errorbar","Linerange","Pointrange") #2d
+  # inputPlots_B <- c("Crossbar","Errorbar","Linerange","Pointrange") #2d
   #TODO: plot aes
   
   
