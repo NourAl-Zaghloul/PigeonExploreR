@@ -38,13 +38,18 @@ ui <- fluidPage(
                         tabPanel("Layer",
                                  sidebarLayout(
                                    sidebarPanel(
-                                     uiOutput("layerPlot_1"),
-                                     uiOutput("layerx_1"),
-                                     conditionalPanel("input.input_quantity > 1",
-                                                      uiOutput("layery_1"),
-                                                      conditionalPanel("input.input_quantity == 3",
-                                                                       uiOutput("layerz_1")))
-                                     #,
+                                     tabsetPanel(
+                                       tabPanel("Plot",
+                                                uiOutput("layerPlot_1"),
+                                                uiOutput("layerx_1"),
+                                                conditionalPanel("input.input_quantity > 1",
+                                                                 uiOutput("layery_1"),
+                                                                 conditionalPanel("input.input_quantity == 3",
+                                                                                  uiOutput("layerz_1")))
+                                       ),
+                                       tabPanel("Aes")
+                                     )
+                                                                          #,
                                      ##### TODO: Fix conditional, doesn't work...
                                      # conditionalPanel("input.LayerPlot_1 %in% output.inputPlots_A",
                                      #                  uiOutput("layerChoiceA_1"))
@@ -144,12 +149,6 @@ server <- function(input, output) {
                 choices = Data_names(),
                 selected = input$zchoice)
   })
-  ####TODO: Reactive choice UI ####
-  # output$layerChoiceA_1 <- renderUI({
-  #   selectInput(inputId = "layerChoiceA_1",
-  #               label = "sucks",
-  #               choices = c(1:10))
-  # })
   
   # Main Table Outputs
   output$table <- renderTable({
@@ -160,7 +159,7 @@ server <- function(input, output) {
       return(Data_df())
     }})
   
-  #  Plot
+  # Main Plot
   output$ThePlot <- renderPlot({
     
     req(input$layerx_1)
