@@ -45,14 +45,14 @@ ui <- fluidPage(
                                                 conditionalPanel("input.input_quantity > 1",
                                                                  uiOutput("layery_1"),
                                                                  conditionalPanel("input.input_quantity == 3",
-                                                                                  uiOutput("layerz_1")))
+                                                                                  uiOutput("layerz_1"))),
+                                                #### TODO: Fix conditional, doesn't work...
+                                                conditionalPanel("input.LayerPlot_1 %in% output.inputPlots_A",
+                                                                 uiOutput("layerChoiceA_1"))
                                        ),
-                                       tabPanel("Aes")
+                                       tabPanel("Aes"),
+                                       tabPanel("Group")
                                      )
-                                                                          #,
-                                     ##### TODO: Fix conditional, doesn't work...
-                                     # conditionalPanel("input.LayerPlot_1 %in% output.inputPlots_A",
-                                     #                  uiOutput("layerChoiceA_1"))
                                    ),
                                    mainPanel(
                                      plotOutput("ThePlot")))),
@@ -82,9 +82,9 @@ server <- function(input, output) {
   )
   
   #TODO: plotChoiceA-C primitives
-  # inputPlots_A <-c("qq", #1d
-  #                  "Label","Text","Dotplot_2d","Map","Crossbar","Errorbar","Linerange","Pointrange") #2d
-  # inputPlots_B <- c("Crossbar","Errorbar","Linerange","Pointrange") #2d
+  inputPlots_A <-c("qq", #1d
+                   "Label","Text","Dotplot_2d","Map","Crossbar","Errorbar","Linerange","Pointrange") #2d
+  inputPlots_B <- c("Crossbar","Errorbar","Linerange","Pointrange") #2d
   #TODO: plot aes
   
   
@@ -148,6 +148,12 @@ server <- function(input, output) {
                 label = "Choose z variable",
                 choices = Data_names(),
                 selected = input$zchoice)
+  })
+  output$layerChoiceA_1 <- renderUI({
+    req(input$file)
+    selectInput(inputId = "layerChoiceA_1",
+                label = "Choose setting",
+                choices = Data_names())
   })
   
   # Main Table Outputs
