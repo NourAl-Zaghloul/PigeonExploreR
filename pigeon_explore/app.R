@@ -47,7 +47,7 @@ ui <- fluidPage(
                                                                  conditionalPanel("input.input_quantity == 3",
                                                                                   uiOutput("layerz_1"))),
                                                 #### TODO: Fix conditional, doesn't work...
-                                                conditionalPanel("input.LayerPlot_1 %in% output.inputPlots_A",
+                                                conditionalPanel("input.LayerPlot_1 in output.inputPlots_A",
                                                                  uiOutput("layerChoiceA_1"))
                                        ),
                                        tabPanel("Aes"),
