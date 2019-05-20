@@ -48,7 +48,9 @@ pigeon_shinyggplot <- function(){
                                                                                     uiOutput("layerz_1"))),
                                                   # Uses shinyjs to use a reactive on the server side as a boolean
                                                   conditionalPanel("output.A1",
-                                                                   uiOutput("layerChoiceA_1"))
+                                                                   uiOutput("layerChoiceA_1")),
+                                                  conditionalPanel("output.B1",
+                                                                   uiOutput("layerChoiceB_1"))
                                          ),
                                          tabPanel("Aes"),
                                          tabPanel("Group")
@@ -160,6 +162,17 @@ pigeon_shinyggplot <- function(){
     output$layerChoiceA_1 <- renderUI({
       req(input$file)
       selectInput(inputId = "layerChoiceA_1",
+                  label = "Choose setting",
+                  choices = Data_names())
+    })
+
+    output$B1 <- reactive({
+      input$layerPlot_1 %in% inputPlots_B
+    })
+    outputOptions(output, 'B1', suspendWhenHidden = FALSE)
+    output$layerChoiceB_1 <- renderUI({
+      req(input$file)
+      selectInput(inputId = "layerChoiceB_1",
                   label = "Choose setting",
                   choices = Data_names())
     })
