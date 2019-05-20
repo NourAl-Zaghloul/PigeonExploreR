@@ -1,43 +1,41 @@
+
+
 pigeon_shinyggplot <- function(){
 
-  library(shiny)
-  library(tidyverse)
-  library(quantreg)
+  # library(shiny)
+  # library(shinyjs)
+  # library(tidyverse)
+  # library(quantreg)
 
   # Define UI for application that draws a histogram
   ui <- fluidPage(
     navbarPage("Pigeon ExploreR",
-               navbarMenu("Data",
-                          tabPanel("Rawdata",
-                                   sidebarLayout(
-                                     sidebarPanel(
-                                       fileInput(inputId = "file",
-                                                 label = "Choose CSV File",
-                                                 accept = c(
-                                                   "text/csv",
-                                                   "text/comma-separated-values,text/plain",
-                                                   ".csv")),
-                                       checkboxInput(inputId = "header",
-                                                     label = "Header",
-                                                     value = TRUE),
-                                       checkboxInput(inputId = "head",
-                                                     label = "Head",
-                                                     value = FALSE),
-                                       sliderInput("input_quantity",
-                                                   "How many variables?",
-                                                   1,3,2),
-                                       uiOutput("xchoice"),
-                                       conditionalPanel("input.input_quantity > 1",
-                                                        uiOutput("ychoice"),
-                                                        conditionalPanel("input.input_quantity == 3",
-                                                                         uiOutput("zchoice")))),
-                                     mainPanel(tableOutput("table")))),
-                          tabPanel("Summaries"),
-                          tabPanel("Transform")
-               )
-               ,
+               tabPanel("Data",
+                        sidebarLayout(
+                          sidebarPanel(
+                            fileInput(inputId = "file",
+                                      label = "Choose CSV File",
+                                      accept = c(
+                                        "text/csv",
+                                        "text/comma-separated-values,text/plain",
+                                        ".csv")),
+                            checkboxInput(inputId = "header",
+                                          label = "Header",
+                                          value = TRUE),
+                            checkboxInput(inputId = "head",
+                                          label = "Head",
+                                          value = FALSE),
+                            sliderInput("input_quantity",
+                                        "How many variables?",
+                                        1,3,2),
+                            uiOutput("xchoice"),
+                            conditionalPanel("input.input_quantity > 1",
+                                             uiOutput("ychoice"),
+                                             conditionalPanel("input.input_quantity == 3",
+                                                              uiOutput("zchoice")))),
+                          mainPanel(tableOutput("table")))),
                navbarMenu("Plot",
-                          tabPanel("Layer",
+                          tabPanel("Layer1",
                                    sidebarLayout(
                                      sidebarPanel(
                                        tabsetPanel(
@@ -48,8 +46,8 @@ pigeon_shinyggplot <- function(){
                                                                    uiOutput("layery_1"),
                                                                    conditionalPanel("input.input_quantity == 3",
                                                                                     uiOutput("layerz_1"))),
-                                                  #### TODO: Fix conditional, doesn't work...
-                                                  conditionalPanel("output.inputPlots_A.includes(input.LayerPlot_1)",
+                                                  # Uses shinyjs to use a reactive on the server side as a boolean
+                                                  conditionalPanel("output.A1",
                                                                    uiOutput("layerChoiceA_1"))
                                          ),
                                          tabPanel("Aes"),
@@ -87,6 +85,8 @@ pigeon_shinyggplot <- function(){
     inputPlots_A <-c("qq", #1d
                      "Label","Text","Dotplot_2d","Map","Crossbar","Errorbar","Linerange","Pointrange") #2d
     inputPlots_B <- c("Crossbar","Errorbar","Linerange","Pointrange") #2d
+    inputPlots_C <- c()
+    inputPlots_Primitives <- c()
     #TODO: plot aes
 
 
@@ -151,6 +151,12 @@ pigeon_shinyggplot <- function(){
                   choices = Data_names(),
                   selected = input$zchoice)
     })
+
+    # Returns a boolean to conditional panel to see if we need aditional options
+    output$A1 <- reactive({
+      input$layerPlot_1 %in% inputPlots_A
+    })
+    outputOptions(output, 'A1', suspendWhenHidden = FALSE)
     output$layerChoiceA_1 <- renderUI({
       req(input$file)
       selectInput(inputId = "layerChoiceA_1",
