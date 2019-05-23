@@ -2,14 +2,17 @@
 
 pigeon_shinyggplot <- function(){
 
+  #### Libraries ----
   # library(shiny)
   # library(shinyjs)
   # library(tidyverse)
   # library(quantreg)
 
+  #### UI ----
   # Define UI for application that draws a histogram
   ui <- fluidPage(
     navbarPage("Pigeon ExploreR",
+               #### .. ui Data ----
                tabPanel("Data",
                         sidebarLayout(
                           sidebarPanel(
@@ -32,14 +35,18 @@ pigeon_shinyggplot <- function(){
                             conditionalPanel("input.input_quantity > 1",
                                              uiOutput("ychoice"),
                                              conditionalPanel("input.input_quantity == 3",
-                                                              uiOutput("zchoice")))),
+                                                              uiOutput("zchoice"))),
+                            uiOutput("CompleteThemes")),
                           mainPanel(tableOutput("table")))),
+               #### .. ui Plot ----
                navbarMenu("Plot",
+                          #### .... Layer1 ----
                           tabPanel("Layer1",
                                    sidebarLayout(
                                      sidebarPanel(
                                        tabsetPanel(
-                                         tabPanel("Plot",
+                                         #### ...... Plot ----
+                                         tabPanel("Plot 1",
                                                   uiOutput("layerPlot_1"),
                                                   uiOutput("layerx_1"),
                                                   conditionalPanel("input.input_quantity > 1",
@@ -52,23 +59,34 @@ pigeon_shinyggplot <- function(){
                                                   conditionalPanel("output.B1",
                                                                    uiOutput("layerChoiceB_1"))
                                          ),
-                                         tabPanel("Aes"),
-                                         tabPanel("Group")
+                                         #### ...... Aes ----
+                                         tabPanel("Aes")
                                        )
                                      ),
                                      mainPanel(
                                        plotOutput("ThePlot")))),
-                          tabPanel("Themes")
+                          #### .... Theme ----
+                          tabPanel("Themes",
+                                   sidebarLayout(
+                                     sidebarPanel(
+                                         tabPanel("Custom Themes",
+                                                  uiOutput("CustomThemes"))),
+                                       mainPanel(
+                                         plotOutput("ThePlot_Theme")
+                                       )))
                ),
+               #### .. R code ----
                tabPanel("R code"),
+               #### .. About Page ----
                tabPanel("About")
     )
   )
 
   server <- function(input, output) {
+    #### Reused Inputs ----
     # Setting up reused input options
-    inputNames_1d <- c("Area","Density","Histogram","Dotplot","FreqPoly","qq","histogram_discrete")
-    inputNames_2d <- list(
+    PlotNames_1d <- c("Area","Density","Histogram","Dotplot","FreqPoly","qq","histogram_discrete")
+    PlotNames_2d <- list(
       "Continuous XY" = c("Point", "Jitter", "Quantile", "Rug", "Smooth", "Label", "Text"),
       "Discrete X, Continuous Y" = c("Columns", "Boxplot", "Dotplot_2d", "Violin"),
       "Discrete XY" = c("Count", ""),
@@ -77,21 +95,26 @@ pigeon_shinyggplot <- function(){
       "Maps" = c("Map", ""),
       "Error" = c("Crossbar", "Errorbar", "Linerange", "Pointrange")
     )
-    inputNames_3d <- c("Contour", "Raster", "Tile")
-    inputNames_0d <- list(
+    PlotNames_3d <- c("Contour", "Raster", "Tile")
+    PlotNames_0d <- list(
       "Primitives" = c("Blank", "Curve", "Path", "Polygon", "Rectangle", "Ribbon"),
       "Line Segments" = c("abline", "hline", "vline", "segment", "spoke")
     )
 
     #TODO: plotChoiceA-C primitives
-    inputPlots_A <-c("qq", #1d
+    PlotAdditions_A <-c("qq", #1d
                      "Label","Text","Dotplot_2d","Map","Crossbar","Errorbar","Linerange","Pointrange") #2d
-    inputPlots_B <- c("Crossbar","Errorbar","Linerange","Pointrange") #2d
-    inputPlots_C <- c()
-    inputPlots_Primitives <- c()
+    PlotAdditions_B <- c("Crossbar","Errorbar","Linerange","Pointrange") #2d
+    PlotAdditions_C <- c()
+    PlotAdditions_Primitives <- c()
     #TODO: plot aes
 
+    # Complete Themes
+    ThemesComplete_Default <- c("Grey", "Black & White", "Linedraw", "Light", "Dark",
+                                "Minimal", "Classic", "Void", "Test")
 
+
+    #### Uploaded Data ----
     # Getting Data from the csv file uploaded
     Data_df <- reactive({
       req(input$file)
@@ -102,6 +125,7 @@ pigeon_shinyggplot <- function(){
       names(Data_df())
     })
 
+    #### User Variables ----
     # Setting up variables
     output$xchoice <- renderUI({
       req(input$file)
@@ -128,8 +152,8 @@ pigeon_shinyggplot <- function(){
       req(input$file)
       selectInput(inputId = "layerPlot_1",
                   label = "Select your plot",
-                  choices = if(input$input_quantity == 1){inputNames_1d} else
-                    if(input$input_quantity == 2){inputNames_2d} else {inputNames_3d}
+                  choices = if(input$input_quantity == 1){PlotNames_1d} else
+                    if(input$input_quantity == 2){PlotNames_2d} else {PlotNames_3d}
       )
     })
     output$layerx_1 <- renderUI({
@@ -154,9 +178,25 @@ pigeon_shinyggplot <- function(){
                   selected = input$zchoice)
     })
 
+    # Makes Theme UI
+    output$CompleteThemes <- renderUI({
+      req(input$file)
+      selectInput(inputId = "CompleteThemes",
+                  label = "Choose Complete Theme",
+                  choices = ThemesComplete_Default)
+    })
+    output$CustomThemes <- renderUI({})
+
+
+    #### Reactive Booleans for UI ----
     # Returns a boolean to conditional panel to see if we need aditional options
+    output$A1_text <- reactive({
+      input$layerPlot_1 %>%
+        switch()
+    })
+
     output$A1 <- reactive({
-      input$layerPlot_1 %in% inputPlots_A
+      input$layerPlot_1 %in% PlotAdditions_A
     })
     outputOptions(output, 'A1', suspendWhenHidden = FALSE)
     output$layerChoiceA_1 <- renderUI({
@@ -167,7 +207,7 @@ pigeon_shinyggplot <- function(){
     })
 
     output$B1 <- reactive({
-      input$layerPlot_1 %in% inputPlots_B
+      input$layerPlot_1 %in% PlotAdditions_B
     })
     outputOptions(output, 'B1', suspendWhenHidden = FALSE)
     output$layerChoiceB_1 <- renderUI({
@@ -177,6 +217,13 @@ pigeon_shinyggplot <- function(){
                   choices = Data_names())
     })
 
+    #### Aes Options ----
+
+    #### Theme Options ----
+
+    #### Grouping Options ----
+
+    #### Main Outputs ----
     # Main Table Outputs
     output$table <- renderTable({
       req(input$file)
@@ -187,8 +234,7 @@ pigeon_shinyggplot <- function(){
       }})
 
     # Main Plot
-    output$ThePlot <- renderPlot({
-
+    PLOTPLOT <- reactive({
       req(input$layerx_1)
 
       if(input$input_quantity == 1){
@@ -239,9 +285,27 @@ pigeon_shinyggplot <- function(){
             "Raster" = ggplot2::geom_raster(aes_string(fill = {input$layerz_1})),
             "Tile" = ggplot2::geom_tile(aes_string(fill = {input$layerz_1})))
       })
-      return(plot_base + layer1_input())
 
+      return(plot_base + layer1_input())
     })
+
+    THEMETHEME <- reactive({
+      req(input$CompleteThemes)
+      input$CompleteThemes %>% switch(
+        "Grey" = theme_grey(),
+        "Black & White" = theme_bw(),
+        "Linedraw" = theme_linedraw(),
+        "Light" = theme_light(),
+        "Dark" = theme_dark(),
+        "Minimal" = theme_minimal(),
+        "Classic" = theme_classic(),
+        "Void" = theme_void(),
+        "Test" = theme_test())
+    })
+
+    output$ThePlot <- renderPlot({plot(PLOTPLOT() + THEMETHEME())})
+
+    output$ThePlot_Theme <- renderPlot({plot(PLOTPLOT() + THEMETHEME())})
   }
 
   # Run the application
