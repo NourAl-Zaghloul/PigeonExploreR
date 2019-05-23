@@ -69,8 +69,13 @@ pigeon_shinyggplot <- function(){
                           tabPanel("Themes",
                                    sidebarLayout(
                                      sidebarPanel(
-                                         tabPanel("Custom Themes",
-                                                  uiOutput("CustomThemes"))),
+                                         tabPanel("base",
+                                                  uiOutput("Theme_basetheme")),
+                                         tabPanel("axis"),
+                                         tabPanel("legend"),
+                                         tabPanel("panel"),
+                                         tabPanel("plot"),
+                                         tabPanel("strip")),
                                        mainPanel(
                                          plotOutput("ThePlot_Theme")
                                        )))
@@ -185,7 +190,13 @@ pigeon_shinyggplot <- function(){
                   label = "Choose Complete Theme",
                   choices = ThemesComplete_Default)
     })
-    output$CustomThemes <- renderUI({})
+    output$Theme_basetheme <- renderUI({
+      req(input$file)
+      selectInput(inputId = "Theme_basetheme",
+                  label = "Choose Base Theme",
+                  choices = ThemesComplete_Default,
+                  selected = input$CompleteThemes)
+    })
 
 
     #### Reactive Booleans for UI ----
@@ -291,16 +302,29 @@ pigeon_shinyggplot <- function(){
 
     THEMETHEME <- reactive({
       req(input$CompleteThemes)
-      input$CompleteThemes %>% switch(
-        "Grey" = theme_grey(),
-        "Black & White" = theme_bw(),
-        "Linedraw" = theme_linedraw(),
-        "Light" = theme_light(),
-        "Dark" = theme_dark(),
-        "Minimal" = theme_minimal(),
-        "Classic" = theme_classic(),
-        "Void" = theme_void(),
-        "Test" = theme_test())
+      if(is_empty(input$Theme_basetheme)){
+        input$CompleteThemes %>% switch(
+          "Grey" = theme_grey(),
+          "Black & White" = theme_bw(),
+          "Linedraw" = theme_linedraw(),
+          "Light" = theme_light(),
+          "Dark" = theme_dark(),
+          "Minimal" = theme_minimal(),
+          "Classic" = theme_classic(),
+          "Void" = theme_void(),
+          "Test" = theme_test())
+      } else {
+        input$Theme_basetheme %>% switch(
+          "Grey" = theme_grey(),
+          "Black & White" = theme_bw(),
+          "Linedraw" = theme_linedraw(),
+          "Light" = theme_light(),
+          "Dark" = theme_dark(),
+          "Minimal" = theme_minimal(),
+          "Classic" = theme_classic(),
+          "Void" = theme_void(),
+          "Test" = theme_test())
+      }
     })
 
     output$ThePlot <- renderPlot({plot(PLOTPLOT() + THEMETHEME())})
@@ -311,3 +335,5 @@ pigeon_shinyggplot <- function(){
   # Run the application
   shinyApp(ui = ui, server = server)
 }
+
+pigeon_shinyggplot()
