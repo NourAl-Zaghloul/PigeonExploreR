@@ -1,12 +1,12 @@
-
+#### Libraries ----
+library(shiny)
+library(shinyjs)
+library(tidyverse)
+library(quantreg)
 
 pigeon_shinyggplot <- function(){
 
-  #### Libraries ----
-  # library(shiny)
-  # library(shinyjs)
-  # library(tidyverse)
-  # library(quantreg)
+
 
   #### UI ----
   # Define UI for application that draws a histogram
@@ -87,6 +87,7 @@ pigeon_shinyggplot <- function(){
     )
   )
 
+  #### Server ----
   server <- function(input, output) {
     #### Reused Inputs ----
     # Setting up reused input options
@@ -107,12 +108,11 @@ pigeon_shinyggplot <- function(){
     )
 
     #TODO: plotChoiceA-C primitives
-    PlotAdditions_A <-c("qq", #1d
+    PlotAdditions_A <-c("Area","Density","Histogram","Dotplot","FreqPoly","qq", #1d
                      "Label","Text","Dotplot_2d","Map","Crossbar","Errorbar","Linerange","Pointrange") #2d
     PlotAdditions_B <- c("Crossbar","Errorbar","Linerange","Pointrange") #2d
     PlotAdditions_C <- c()
     PlotAdditions_Primitives <- c()
-    #TODO: plot aes
 
     # Complete Themes
     ThemesComplete_Default <- c("Grey", "Black & White", "Linedraw", "Light", "Dark",
@@ -199,22 +199,26 @@ pigeon_shinyggplot <- function(){
     })
 
 
+
     #### Reactive Booleans for UI ----
     # Returns a boolean to conditional panel to see if we need aditional options
-    output$A1_text <- reactive({
-      input$layerPlot_1 %>%
-        switch()
-    })
-
     output$A1 <- reactive({
       input$layerPlot_1 %in% PlotAdditions_A
     })
     outputOptions(output, 'A1', suspendWhenHidden = FALSE)
     output$layerChoiceA_1 <- renderUI({
-      req(input$file)
-      selectInput(inputId = "layerChoiceA_1",
-                  label = "Choose setting",
-                  choices = Data_names())
+      req(input$layerPlot_1)
+      input$layerPlot_1 %>%
+        switch(
+          "Area" = sliderInput("layerChoiceA_1", "Choose binwidth", min = mean(Data_df[, c(input$layerx_1)]) * .05 , max = IQR(Data_df[, c(input$layerx_1)]), value = mean(Data_df[, c(input$layerx_1)]) * .1),
+          "Density" = sliderInput("layerChoiceA_1", "Choose binwidth", min = sd(Data_df[, c(input$layerx_1)])/mean(Data_df[, c(input$layerx_1)]) * .5 , max = IQR(Data_df[, c(input$layerx_1)]), value = sd(Data_df[, c(input$layerx_1)])/mean(Data_df[, c(input$layerx_1)])),
+          "Histogram" = sliderInput("layerChoiceA_1", "Choose binwidth", min = sd(Data_df[, c(input$layerx_1)])/mean(Data_df[, c(input$layerx_1)]) * .5 , max = IQR(Data_df[, c(input$layerx_1)]), value = sd(Data_df[, c(input$layerx_1)])/mean(Data_df[, c(input$layerx_1)])),
+          "Dotplot" = sliderInput("layerChoiceA_1", "Choose binwidth", min = sd(Data_df[, c(input$layerx_1)])/mean(Data_df[, c(input$layerx_1)]) * .5 , max = IQR(Data_df[, c(input$layerx_1)]), value = sd(Data_df[, c(input$layerx_1)])/mean(Data_df[, c(input$layerx_1)])),
+          "FreqPoly" = sliderInput("layerChoiceA_1", "Choose binwidth", min = sd(Data_df[, c(input$layerx_1)])/mean(Data_df[, c(input$layerx_1)]) * .5 , max = IQR(Data_df[, c(input$layerx_1)]), value = sd(Data_df[, c(input$layerx_1)])/mean(Data_df[, c(input$layerx_1)])),
+          "qq" =       selectInput(inputId = "layerChoiceA_1",
+                                   label = "Choose setting",
+                                   choices = Data_names())
+        )
     })
 
     output$B1 <- reactive({
