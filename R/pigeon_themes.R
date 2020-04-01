@@ -39,3 +39,5 @@ plt_line <- ggplot(rihanna_grouped, aes(x = year, y = loud_mean)) +
 
 
 #### KidNeuroLab ----
+
+#### Rihanna Album Themes ----
